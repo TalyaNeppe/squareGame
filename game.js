@@ -9,10 +9,9 @@ let myBottom;
 let score = 0;
 let myCoins = [];
 function startGame() {
-    // debugger;
-    myGamePiece = new Component(30, 30, "red", 10, 120);
+    myGamePiece = new Cube(30, 30, "red", 10, 120);
     myGamePiece.gravity = 0.05;
-    myScore = new Component("15px", "Consolas", "black", 280, 40, "text");
+    myScore = new Score("15px", "Consolas", "black", 280, 40, "text");
     myGameArea.start();
     myGoal = new Component(30, 270, "blue", 450, 0);
     myTop = new Component(480, 90, "purple", 0, 0)
@@ -33,36 +32,32 @@ var myGameArea = {
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
-
 }
 
 class Component {
     
-    constructor(width, height, color, x, y, type) {
-        this.type = type;
-        this.score = 0;
+    constructor(width, height, color, x, y) {
         this.width = width;
         this.height = height;
         this.color = color;
-        this.speedX = 0;
-        this.speedY = 0;
         this.x = x;
         this.y = y;
+    }
+    update() {
+        let ctx = myGameArea.context;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+}
+class Cube extends Component {
+    constructor(width, height, color, x, y){
+        super(width, height, color, x, y)
+        this.speedX = 0.15;
+        this.speedY = 0;
         this.gravity = 0;
         this.gravitySpeed = 0;
     }
-
-    update() {
-        let ctx = myGameArea.context;
-        if (this.type == "text") {
-            ctx.font = this.width + " " + this.height;
-            ctx.fillStyle = this.color;
-            ctx.fillText(this.text, this.x, this.y);
-        } else {
-            ctx.fillStyle = this.color;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
-        }
-    }
+    
     newPos() {
         this.gravitySpeed += this.gravity;
         this.x += this.speedX;
@@ -93,6 +88,24 @@ class Component {
     }
 }
 
+class Score extends Component {
+    constructor(width, height, color, x, y) {
+        super(width, height, color, x, y)
+        this.score = 0;
+    }
+    update() {
+        let ctx = myGameArea.context;
+        ctx.font = this.width + " " + this.height;
+        ctx.fillStyle = this.color;
+        ctx.fillText(this.text, this.x, this.y);
+    }
+}
+// class Obstacle extends Component {
+    
+// }
+// class Coin extends Component {
+
+// }
 function updateGameArea() {
     var x, height, gap, minHeight, maxHeight, minGap, maxGap;
     for (i = 0; i < myObstacles.length; i += 1) {
@@ -110,7 +123,7 @@ function updateGameArea() {
         clearInterval(myGameArea.interval)
         return;
     }
-    if (myGamePiece.crashWith(myTop)||myGamePiece.crashWith(myBottom)) {
+    if (myGamePiece.crashWith(myTop) || myGamePiece.crashWith(myBottom)) {
         score += 101;
     }
     else if (myGamePiece.crashWith(myMiddle)) {
@@ -146,19 +159,18 @@ function updateGameArea() {
 
     if (myGameArea.frameNo == 75 || everyinterval(170) && !everyinterval(140)) {
         x = myGameArea.canvas.width;
-        let currCoin=new Component(15, 15, "yellow", x, Math.floor(Math.random() * (256)));
+        let currCoin = new Component(15, 15, "yellow", x, Math.floor(Math.random() * (256)));
         myCoins.push(currCoin);
-        
+
     }
-    
+
     for (i = 0; i < myCoins.length; i += 1) {
         myCoins[i].x += -1;
         myCoins[i].update();
     }
-
+    
     myScore.text = "SCORE: " + score;
     myScore.update();
-    myGamePiece.speedX = 0.15
     myGamePiece.newPos();
     myGamePiece.update();
     myGoal.update();
