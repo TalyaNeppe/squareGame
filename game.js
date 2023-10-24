@@ -2,19 +2,28 @@
 var myGamePiece;
 var myObstacles = [];
 var myScore;
-
+let myGoal;
+let myTop;
+let myMiddle;
+let myBottom;
+let score = 0;
+let myCoins = [];
 function startGame() {
     // debugger;
     myGamePiece = new Component(30, 30, "red", 10, 120);
     myGamePiece.gravity = 0.05;
-    myScore = new Component("30px", "Consolas", "black", 280, 40, "text");
+    myScore = new Component("15px", "Consolas", "black", 280, 40, "text");
     myGameArea.start();
+    myGoal = new Component(30, 270, "blue", 450, 0);
+    myTop = new Component(480, 90, "purple", 0, 0)
+    myMiddle = new Component(480, 90, "orange", 0, 90)
+    myBottom = new Component(480, 90, "brown", 0, 180)
 }
 
 var myGameArea = {
     canvas: document.createElement("canvas"),
     start: function () {
-        cthis.canvas.width = 480;
+        this.canvas.width = 480;
         this.canvas.height = 270;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
@@ -24,10 +33,11 @@ var myGameArea = {
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
+
 }
 
 class Component {
-
+    
     constructor(width, height, color, x, y, type) {
         this.type = type;
         this.score = 0;
@@ -90,7 +100,33 @@ function updateGameArea() {
             return;
         }
     }
+    if (myGamePiece.crashWith(myGoal)) {
+        myGameArea.clear();
+        score += 1000;
+        myScore.text = "SCORE: " + score;
+        myScore.update();
+        myGamePiece.update();
+        myGoal.update();
+        clearInterval(myGameArea.interval)
+        return;
+    }
+    if (myGamePiece.crashWith(myTop)||myGamePiece.crashWith(myBottom)) {
+        score += 101;
+    }
+    else if (myGamePiece.crashWith(myMiddle)) {
+        score += 51;
+    }
+
+    for (i = 0; i < myCoins.length; i += 1) {
+        if (myGamePiece.crashWith(myCoins[i])) {
+            myCoins.splice(i, 1);
+            score += 100;
+        }
+    }
     myGameArea.clear();
+    myTop.update();
+    myMiddle.update();
+    myBottom.update();
     myGameArea.frameNo += 1;
     if (myGameArea.frameNo == 1 || everyinterval(150)) {
         x = myGameArea.canvas.width;
@@ -107,10 +143,25 @@ function updateGameArea() {
         myObstacles[i].x += -1;
         myObstacles[i].update();
     }
-    myScore.text = "SCORE: " + myGameArea.frameNo;
+
+    if (myGameArea.frameNo == 75 || everyinterval(170) && !everyinterval(140)) {
+        x = myGameArea.canvas.width;
+        let currCoin=new Component(15, 15, "yellow", x, Math.floor(Math.random() * (256)));
+        myCoins.push(currCoin);
+        
+    }
+    
+    for (i = 0; i < myCoins.length; i += 1) {
+        myCoins[i].x += -1;
+        myCoins[i].update();
+    }
+
+    myScore.text = "SCORE: " + score;
     myScore.update();
+    myGamePiece.speedX = 0.15
     myGamePiece.newPos();
     myGamePiece.update();
+    myGoal.update();
 }
 
 function everyinterval(n) {
